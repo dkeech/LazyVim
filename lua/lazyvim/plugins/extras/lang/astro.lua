@@ -3,9 +3,11 @@ return {
     return LazyVim.extras.wants({
       ft = "astro",
       root = {
+        -- https://docs.astro.build/en/guides/configuring-astro/#supported-config-file-types
         "astro.config.js",
         "astro.config.mjs",
         "astro.config.cjs",
+        "astro.config.ts",
       },
     })
   end,
@@ -15,11 +17,7 @@ return {
 
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = function(_, opts)
-      if type(opts.ensure_installed) == "table" then
-        vim.list_extend(opts.ensure_installed, { "astro" })
-      end
-    end,
+    opts = { ensure_installed = { "astro", "css" } },
   },
 
   -- LSP Servers
@@ -39,14 +37,20 @@ return {
       LazyVim.extend(opts.servers.vtsls, "settings.vtsls.tsserver.globalPlugins", {
         {
           name = "@astrojs/ts-plugin",
-          location = LazyVim.get_pkg_path(
-            "astro-language-server",
-            "/node_modules/@astrojs/ts-plugin",
-            { warn = false }
-          ),
+          location = LazyVim.get_pkg_path("astro-language-server", "/node_modules/@astrojs/ts-plugin"),
           enableForWorkspaceTypeScriptVersions = true,
         },
       })
+    end,
+  },
+
+  {
+    "conform.nvim",
+    opts = function(_, opts)
+      if LazyVim.has_extra("formatting.prettier") then
+        opts.formatters_by_ft = opts.formatters_by_ft or {}
+        opts.formatters_by_ft.astro = { "prettier" }
+      end
     end,
   },
 }

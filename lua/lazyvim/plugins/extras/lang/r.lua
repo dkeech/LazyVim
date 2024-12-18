@@ -19,28 +19,27 @@ return {
           vim.keymap.set("n", "<Enter>", "<Plug>RDSendLine", { buffer = true })
           vim.keymap.set("v", "<Enter>", "<Plug>RSendSelection", { buffer = true })
 
-          -- Increase the width of which-key to handle the longer r-nvim descriptions
           local wk = require("which-key")
-          -- Workaround from https://github.com/folke/which-key.nvim/issues/514#issuecomment-1987286901
-          wk.register({
-            ["<localleader>"] = {
-              a = { name = "+(a)ll", ["🚫"] = "which_key_ignore" },
-              b = { name = "+(b)etween marks", ["🚫"] = "which_key_ignore" },
-              c = { name = "+(c)hunks", ["🚫"] = "which_key_ignore" },
-              f = { name = "+(f)unctions", ["🚫"] = "which_key_ignore" },
-              g = { name = "+(g)oto", ["🚫"] = "which_key_ignore" },
-              k = { name = "+(k)nit", ["🚫"] = "which_key_ignore" },
-              p = { name = "+(p)aragraph", ["🚫"] = "which_key_ignore" },
-              q = { name = "+(q)uarto", ["🚫"] = "which_key_ignore" },
-              r = { name = "+(r) general", ["🚫"] = "which_key_ignore" },
-              s = { name = "+(s)plit or (s)end", ["🚫"] = "which_key_ignore" },
-              t = { name = "+(t)erminal", ["🚫"] = "which_key_ignore" },
-              v = { name = "+(v)iew", ["🚫"] = "which_key_ignore" },
-            },
+          wk.add({
+            buffer = true,
+            mode = { "n", "v" },
+            { "<localleader>a", group = "all" },
+            { "<localleader>b", group = "between marks" },
+            { "<localleader>c", group = "chunks" },
+            { "<localleader>f", group = "functions" },
+            { "<localleader>g", group = "goto" },
+            { "<localleader>i", group = "install" },
+            { "<localleader>k", group = "knit" },
+            { "<localleader>p", group = "paragraph" },
+            { "<localleader>q", group = "quarto" },
+            { "<localleader>r", group = "r general" },
+            { "<localleader>s", group = "split or send" },
+            { "<localleader>t", group = "terminal" },
+            { "<localleader>v", group = "view" },
           })
         end,
       },
-      pdfviewer = ""
+      pdfviewer = "",
     },
     config = function(_, opts)
       vim.g.rout_follow_colorscheme = true
@@ -59,11 +58,7 @@ return {
   },
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = function(_, opts)
-      if type(opts.ensure_installed) == "table" then
-        vim.list_extend(opts.ensure_installed, { "markdown", "markdown_inline", "r", "rnoweb" })
-      end
-    end,
+    opts = { ensure_installed = { "r", "rnoweb" } },
   },
   {
     "neovim/nvim-lspconfig",

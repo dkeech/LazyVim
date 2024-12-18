@@ -1,27 +1,39 @@
+local M = {}
+
+---@param kind string
+function M.pick(kind)
+  return function()
+    local actions = require("CopilotChat.actions")
+    local items = actions[kind .. "_actions"]()
+    if not items then
+      LazyVim.warn("No " .. kind .. " found on the current line")
+      return
+    end
+    local ok = pcall(require, "fzf-lua")
+    require("CopilotChat.integrations." .. (ok and "fzflua" or "telescope")).pick(items)
+  end
+end
+
 return {
   {
     "CopilotC-Nvim/CopilotChat.nvim",
-    branch = "canary",
+    branch = "main",
     cmd = "CopilotChat",
     opts = function()
       local user = vim.env.USER or "User"
       user = user:sub(1, 1):upper() .. user:sub(2)
       return {
-        model = "gpt-4",
         auto_insert_mode = true,
-        show_help = true,
         question_header = "  " .. user .. " ",
         answer_header = "  Copilot ",
         window = {
           width = 0.4,
         },
-        selection = function(source)
-          local select = require("CopilotChat.select")
-          return select.visual(source) or select.buffer(source)
-        end,
       }
     end,
     keys = {
+      { "<c-s>", "<CR>", ft = "copilot-chat", desc = "Submit Prompt", remap = true },
+      { "<leader>a", "", desc = "+ai", mode = { "n", "v" } },
       {
         "<leader>aa",
         function()
@@ -49,10 +61,11 @@ return {
         desc = "Quick Chat (CopilotChat)",
         mode = { "n", "v" },
       },
+      -- Show prompts actions with telescope
+      { "<leader>ap", M.pick("prompt"), desc = "Prompt Actions (CopilotChat)", mode = { "n", "v" } },
     },
     config = function(_, opts)
       local chat = require("CopilotChat")
-      require("CopilotChat.integrations.cmp").setup()
 
       vim.api.nvim_create_autocmd("BufEnter", {
         pattern = "copilot-chat",
@@ -64,49 +77,6 @@ return {
 
       chat.setup(opts)
     end,
-  },
-
-  {
-    "folke/which-key.nvim",
-    optional = true,
-    opts = {
-      defaults = {
-        ["<leader>a"] = { name = "+ai" },
-      },
-    },
-  },
-
-  -- Telescope integration
-  {
-    "nvim-telescope/telescope.nvim",
-    optional = true,
-    keys = {
-      -- Show help actions with telescope
-      {
-        "<leader>ad",
-        function()
-          local actions = require("CopilotChat.actions")
-          local help = actions.help_actions()
-          if not help then
-            LazyVim.warn("No diagnostics found on the current line")
-            return
-          end
-          require("CopilotChat.integrations.telescope").pick(help)
-        end,
-        desc = "Diagnostic Help (CopilotChat)",
-        mode = { "n", "v" },
-      },
-      -- Show prompts actions with telescope
-      {
-        "<leader>ap",
-        function()
-          local actions = require("CopilotChat.actions")
-          require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
-        end,
-        desc = "Prompt Actions (CopilotChat)",
-        mode = { "n", "v" },
-      },
-    },
   },
 
   -- Edgy integration
